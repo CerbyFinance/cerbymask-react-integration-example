@@ -1,26 +1,17 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { CerbymaskWindow } from '@cerbymask/cerbymask-lib';
+
+declare let window: CerbymaskWindow;
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <div className="App h-100">
+            <div className="h-100 d-flex centered">
+                <button type="button" className="button-1" onClick={() => window.cerbymask.connect()}>Connect Wallet</button>
+            </div>
+        </div>
+    );
 }
 
 export default App;

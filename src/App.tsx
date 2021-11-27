@@ -1,6 +1,7 @@
 import React from 'react';
-import './App.css';
 import { CerbymaskWindow, TransactionFieldsT } from '@cerbymask/cerbymask-lib';
+import { createTransaction } from './lib/cerby';
+import './App.css';
 
 declare let window: CerbymaskWindow;
 
@@ -10,7 +11,8 @@ interface IProps {
 
 interface IState {
     detected: boolean,
-    connected: boolean
+    connected: boolean,
+    addresses: string[],
 }
 
 class App extends React.Component<IProps, IState> {
@@ -19,7 +21,8 @@ class App extends React.Component<IProps, IState> {
         super(props)
         this.state = {
             detected: false,
-            connected: false
+            connected: false,
+            addresses: []
         }
     }
 
@@ -41,21 +44,29 @@ class App extends React.Component<IProps, IState> {
                 window.cerbymask.validateWallet()
 
                 // On connect
-                window.cerbymask.events.on("onApproveClient", (data) => this.setState({connected: true}))
+                window.cerbymask.events.on("onApproveClient", (connected) => this.handleWalletConnection(connected))
 
                 // On reconnect
-                window.cerbymask.events.on("onValidateWallet", (data) => this.setState({connected: data}))
+                window.cerbymask.events.on("onValidateWallet", (connected) => this.handleWalletConnection(connected))
+
+                // On public addresses
+                window.cerbymask.events.on("onPublicAddresses", (addresses) => this.handlePublicAddresses(addresses))
+
                 return resolve(true)
             }
             return reject(false)
         })
     }
 
-    createTransaction() {
-        if(this.state.connected) {
-            const transaction = { from: "Hello World", to: "From here" } as TransactionFieldsT
-            window.cerbymask.submitTransaction(transaction)
+    handleWalletConnection(isConnected: boolean) {
+        this.setState({connected: isConnected})
+        if(isConnected) {
+            window.cerbymask.getPublicAddresses()
         }
+    }
+
+    handlePublicAddresses(addresses: string[]) {
+        this.setState({addresses: addresses})
     }
 
     render() {
@@ -69,7 +80,20 @@ class App extends React.Component<IProps, IState> {
                         <button type="button" className="button-1" onClick={() => window.cerbymask.connect()}>Connect Wallet</button> 
                     }
                     { this.state.detected && this.state.connected &&
-                        <button type="button" className="button-1" onClick={() => this.createTransaction()}>Buy CERBY</button>
+                    <div className="container-column row-gap-1">
+                        <select className="select-address">
+                            {
+                                this.state.addresses.map(address => {
+                                    return (
+                                        <option key={address} value={address}>
+                                            {address}
+                                        </option>
+                                    )
+                                })
+                            }
+                        </select>
+                        <button type="button" className="button-1" onClick={() => createTransaction()}>Buy CERBY</button>
+                    </div>
                     }
                 </div>
             </div>
